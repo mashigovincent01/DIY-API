@@ -8,18 +8,81 @@ const materKey = "4VGP2DN-6EWM4SJ-N6FGRHV-Z3PR3TT";
 app.use(bodyParser.urlencoded({extended: true}));
 
 // 1. GET a random joke
+// http://localhost:3000/random
 app.get("/random", (req, res)=>{
     const randomJoke = jokes[Math.floor(Math.random()*jokes.length)]
     res.json(randomJoke);
 });
 // 2. GET a specific joke
+// http://localhost:3000/jokes/:id
+app.get("/jokes/:id", (req, res)=>{
+    const id = parseInt(req.params.id);
+    const foundJoke = jokes.find((joke) => joke.id === id);
+    res.json(foundJoke);
+});
 
 // 3. get  A JOKES BY FILTERING ON THE JOKE TYPE
+// http://localhost:3000/filter?type=Puns
+app.get("/filter", (req, res)=>{
+    const type = req.query.type;
+    const filteredActivities = jokes.filter((joke) => joke.jokeType === type);
+    res.json(filteredActivities);
+});
 
+app.post("/jokes", (req, res)=>{
+    const newJoke = {
+        id: jokes.length + 1,
+        jokeText: req.body.text,
+        jokeType: req.body.type,
+    };
 
+    jokes.push(newJoke);
+    console.log(jokes.slice(-1));
+    res.json(newJoke);
+});
+
+app.put("/jokes/:id", (req, res)=>{
+    const id = parseInt(req.params.id);
+    const jokeText = req.body.text;
+    const jokeType = req.body.type;
+    
+    const index = jokes.findIndex((joke) => joke.id === id);
+    jokes[index].jokeText = jokeText;
+    jokes[index].jokeType = jokeType;
+    app.json(jokes[index]);
+});
+
+app.patch("/jokes/id:", (req, res)=>{
+    const id = parseInt(req.params.id);
+    const existingJoke = jokes.find((joke) => joke.id === id);
+    const replacementJoke = {
+        id: id,
+        jokeText: req.body.text || existingJoke.jokeText,
+        jokeType: req.body.type || existingJoke.jokeType,
+    };
+
+    const searchIndex = jokes.findIndex((joke) => joke.id === id);
+    jokes[searchIndex] = replacementJoke;
+    console.log(jokes[searchIndex]);
+    res.json(replacementJoke);
+})
+
+app.delete("/jokes/:id", (req, res)=>{
+    const id = parseInt(req.params.id);
+    const searchIndex = jokes.findIndex((joke) => joke.id === id);
+    if(searchIndex > -1){
+        jokes.splice(searchIndex, 1);
+        res.sendStatus(200);
+    }
+    else{
+        res
+        .status(404)
+        .json({error: `Joke with id: ${id} not found. No jokes were deleted.`})
+    }
+});
 app.listen(PORT, ()=>{
     console.log(`APP RUNNING ON PORT ${PORT}`);
-})
+});
 
 var jokes = [
   {
